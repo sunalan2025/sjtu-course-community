@@ -40,9 +40,6 @@ brew install tursodatabase/tap/turso
 # Linux
 curl -sSfL https://get.tur.so/install.sh | bash
 
-# Windows（需要 Node.js）
-npm install -g @tursodatabase/turso
-
 # 登录（会弹浏览器认证）
 turso auth login
 
@@ -50,7 +47,10 @@ turso auth login
 turso db create sjtu-course
 ```
 
-> ⚠️ Turso CLI **没有 Windows 原生版本**。Windows 用户请用网页端操作，或通过 npm 安装（需要先装 [Node.js](https://nodejs.org)）。
+> ⚠️ **Windows 没有原生 Turso CLI。** 请选择：
+> - **推荐：** 直接用网页端操作（上方方式一）
+> - **进阶：** 在 [WSL](https://learn.microsoft.com/windows/wsl/install) 中用 Linux 安装脚本
+> - **进阶：** 用 Go 从源码编译：`go install github.com/tursodatabase/turso-cli/cmd/turso@latest`（需先装 [Go](https://go.dev)）
 
 ### 1.2 获取连接信息
 
@@ -106,11 +106,13 @@ python sync_to_turso.py
 ### 1.5 常见维护操作
 
 ```bash
-# 吊销旧 Token（泄露时使用）
-turso db tokens list sjtu-course          # 列出所有 Token
-turso db tokens revoke <token-id>         # 吊销指定 Token
-turso db tokens create sjtu-course        # 生成新 Token
+# 生成新 Token
+turso db tokens create sjtu-course
 # 然后去 Render 更新环境变量中的 TURSO_TOKEN
+
+# 管理 Token（网页端更方便：turso.tech → 数据库详情 → Tokens）
+turso auth list-api-tokens               # 列出所有 Token
+turso auth revoke-api-tokens <token-id>  # 吊销指定 Token
 
 # 删除数据库（慎用！数据不可恢复）
 turso db destroy sjtu-course
