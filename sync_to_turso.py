@@ -2,15 +2,24 @@
 
 用法：
     1. 先安装依赖: pip install libsql-client
-    2. 填入下方 TURSO_URL 和 TURSO_TOKEN
+    2. 设置环境变量（或在下方直接填入）:
+       - TURSO_URL: Turso 数据库 URL
+       - TURSO_TOKEN: Turso 认证 Token
     3. 运行: python sync_to_turso.py
+
+   Windows PowerShell 示例:
+     $env:TURSO_URL="https://xxx.turso.io"
+     $env:TURSO_TOKEN="eyJ..."
+     python sync_to_turso.py
+
+   或直接在下方填入（不要提交到 Git）:
 """
+import os
 import sqlite3
 from libsql_client.sync import create_client_sync
 
-# ====== 改成你的 Turso 连接信息 ======
-TURSO_URL = "https://sjtu-course-sunalan2025.aws-ap-south-1.turso.io"
-TURSO_TOKEN = "REDACTED"
+TURSO_URL = os.environ.get("TURSO_URL", "")    # 填入你的 URL 或设环境变量
+TURSO_TOKEN = os.environ.get("TURSO_TOKEN", "")  # 填入你的 Token 或设环境变量
 # =====================================
 
 SCHEMA = [
@@ -54,6 +63,11 @@ TABLES = ["teachers", "courses", "reviews", "review_tags", "scrape_meta"]
 
 
 def main():
+    if not TURSO_URL or not TURSO_TOKEN:
+        print("❌ 请先设置 TURSO_URL 和 TURSO_TOKEN 环境变量")
+        print("   或直接编辑 sync_to_turso.py 填入")
+        return
+
     print("连接本地数据库...")
     local = sqlite3.connect("sjtu_course.db")
     local.row_factory = sqlite3.Row
