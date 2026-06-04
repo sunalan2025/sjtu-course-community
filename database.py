@@ -35,20 +35,27 @@ class _TursoCursor:
 
     def __init__(self, result):
         self._result = result
+        self._columns = result.columns
         self._iter = iter(result)
+
+    def _to_dict(self, row):
+        """将 Turso Row 转为 dict，支持 dict(row) 和 row["key"]。"""
+        if row is None:
+            return None
+        return {col: row[i] for i, col in enumerate(self._columns)}
 
     def fetchone(self):
         try:
-            return next(self._iter)
+            return self._to_dict(next(self._iter))
         except StopIteration:
             return None
 
     def fetchall(self):
-        return list(self._result)
+        return [self._to_dict(r) for r in self._result]
 
     @property
     def description(self):
-        return [(c,) for c in self._result.columns]
+        return [(c,) for c in self._columns]
 
     def __iter__(self):
         return self._iter
