@@ -107,7 +107,7 @@
 
 - Python 3.10+
 - Git
-- [Turso CLI](https://turso.tech)（数据同步用）
+- [Turso](https://turso.tech) 账号（数据同步用，网页端操作）
 
 ### 本地开发
 
@@ -173,9 +173,9 @@ python main.py stats
 
 1. 访问 https://turso.tech → 用 GitHub 登录
 2. 点 **Create Database** → 名称填 `sjtu-course`，区域选 **香港 (HKG)**
-3. 进入数据库详情页，复制 **URL**（`libsql://...`）和创建 **Token**
+3. 进入数据库详情页，复制 **URL** 和创建 **Token**
 
-> 详细步骤见 [DEPLOYMENT.md](DEPLOYMENT.md)
+> 所有操作都在网页端完成，不需要安装 CLI。详细步骤见 [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ### 2. 同步数据到 Turso
 

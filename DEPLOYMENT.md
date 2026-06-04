@@ -21,109 +21,87 @@
 
 ## 一、Turso 数据库
 
+> **所有操作都可以在网页端完成，不需要安装任何 CLI 工具。**
+
 ### 1.1 创建数据库
 
-**方式一：网页端操作（推荐，全平台通用）**
-
-1. 访问 https://turso.tech → 用 GitHub 登录
-2. 点 **Create Database** → 名称填 `sjtu-course`，区域选 **香港 (HKG)**
-3. 创建完成后点击数据库名进入详情页
-4. 复制 **URL**（类似 `libsql://sjtu-course-xxx.turso.io`）
-5. 点 **Create Token** → 复制 Token（类似 `eyJ...`）
-
-**方式二：命令行操作（需要安装 CLI）**
-
-```bash
-# macOS
-brew install tursodatabase/tap/turso
-
-# Linux
-curl -sSfL https://get.tur.so/install.sh | bash
-
-# 登录（会弹浏览器认证）
-turso auth login
-
-# 创建数据库（名称自定义，区域建议选香港）
-turso db create sjtu-course
-```
-
-> ⚠️ **Windows 没有原生 Turso CLI。** 请选择：
-> - **推荐：** 直接用网页端操作（上方方式一）
-> - **进阶：** 在 [WSL](https://learn.microsoft.com/windows/wsl/install) 中用 Linux 安装脚本
-> - **进阶：** 用 Go 从源码编译：`go install github.com/tursodatabase/turso-cli/cmd/turso@latest`（需先装 [Go](https://go.dev)）
+1. 访问 https://turso.tech → 点 **Sign Up** → 用 **GitHub** 登录
+2. 进入 Dashboard → 点 **Create Database**
+3. 填写：
+   - **Database Name**: `sjtu-course`
+   - **Group**: `default`
+   - **Location**: 选 **香港 (HKG)**（离国内最近）
+4. 点 **Create** → 创建完成自动进入数据库详情页
 
 ### 1.2 获取连接信息
 
-```bash
-# 获取数据库 URL
-turso db show sjtu-course --url
-# 输出示例: libsql://sjtu-course-你的用户名.turso.io
+在数据库详情页：
 
-# 生成认证 Token
-turso db tokens create sjtu-course
-# 输出示例: eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...
-```
+1. 复制页面上的 **Database URL**
+   - 格式类似：`libsql://sjtu-course-你的用户名.turso.io`
+   - 后面同步数据和部署 Render 都要用
+2. 点页面上的 **Create Token** 按钮
+   - 复制生成的 Token（类似 `eyJhbGciOi...`）
+   - 这是数据库的认证密钥，**不要泄露给别人**
 
-**保存好这两个值**，后面部署和同步都要用。
+**把 URL 和 Token 保存好**，后面要用好几次。
 
-### 1.3 查看数据库状态
+### 1.3 查看数据
 
-```bash
-# 查看数据库信息
-turso db show sjtu-course
+在数据库详情页，点 **Console** 标签，可以直接执行 SQL：
 
-# 列出所有数据库
-turso db list
+```sql
+-- 查看数据量
+SELECT COUNT(*) FROM teachers;    -- 教师数
+SELECT COUNT(*) FROM courses;     -- 课程数
+SELECT COUNT(*) FROM reviews;     -- 点评数
+SELECT COUNT(*) FROM review_tags; -- 标签数
 
-# 连接到数据库执行 SQL
-turso db shell sjtu-course
-# 进入后可以执行 SQL，例如：
-# > SELECT COUNT(*) FROM teachers;
-# > SELECT COUNT(*) FROM reviews;
-# > .quit
+-- 查看最新点评
+SELECT course_name, semester, rating, content
+FROM reviews ORDER BY created_at DESC LIMIT 5;
+
+-- 按教师搜索
+SELECT name, department FROM teachers WHERE name LIKE '%张%';
 ```
 
 ### 1.4 数据同步
 
-爬取新数据后，同步到 Turso：
+本地爬取新数据后，同步到 Turso：
 
 ```bash
-# 方式一：设置环境变量后运行
-export TURSO_URL="libsql://sjtu-course-xxx.turso.io"
-export TURSO_TOKEN="eyJ..."
-python sync_to_turso.py
+# 方式一：设置环境变量后运行（推荐）
 
-# 方式二：Windows PowerShell
+# Windows PowerShell:
 $env:TURSO_URL="libsql://sjtu-course-xxx.turso.io"
 $env:TURSO_TOKEN="eyJ..."
 python sync_to_turso.py
 
-# 方式三：直接编辑 sync_to_turso.py 填入（不要提交到 Git）
+# macOS/Linux:
+export TURSO_URL="libsql://sjtu-course-xxx.turso.io"
+export TURSO_TOKEN="eyJ..."
+python sync_to_turso.py
+
+# 方式二：直接编辑 sync_to_turso.py 填入 URL 和 Token（不要提交到 Git）
 ```
 
 同步脚本使用 `INSERT OR REPLACE`，已存在的记录会更新，新记录会插入。可以反复运行，不会产生重复数据。
 
-### 1.5 常见维护操作
+### 1.5 Token 管理（网页端）
 
-```bash
-# 生成新 Token
-turso db tokens create sjtu-course
-# 然后去 Render 更新环境变量中的 TURSO_TOKEN
+| 操作 | 步骤 |
+|---|---|
+| **创建新 Token** | 数据库详情页 → 点 **Create Token** |
+| **查看所有 Token** | 数据库详情页 → **Tokens** 标签 |
+| **吊销 Token** | 数据库详情页 → **Tokens** → 找到要吊销的 → 点删除 |
 
-# 管理 Token（网页端更方便：turso.tech → 数据库详情 → Tokens）
-turso auth list-api-tokens               # 列出所有 Token
-turso auth revoke-api-tokens <token-id>  # 吊销指定 Token
+> 如果 Token 泄露了，立即吊销旧的并创建新的，然后去 Render 更新环境变量。
 
-# 删除数据库（慎用！数据不可恢复）
-turso db destroy sjtu-course
+### 1.6 删除数据库（慎用）
 
-# 查看数据库大小
-turso db shell sjtu-course
-# > SELECT COUNT(*) FROM teachers;   -- 教师数
-# > SELECT COUNT(*) FROM courses;    -- 课程数
-# > SELECT COUNT(*) FROM reviews;    -- 点评数
-# > SELECT COUNT(*) FROM review_tags; -- 标签数
-```
+数据库详情页 → **Settings** → **Dangerous Zone** → **Destroy Database**
+
+> ⚠️ 数据不可恢复！操作前请确认。
 
 ---
 
@@ -258,13 +236,9 @@ git push origin master
 
 ### Turso 连接失败
 
-```bash
-# 测试连接
-turso db shell sjtu-course
-
-# 如果 Token 过期，重新生成
-turso db tokens create sjtu-course
-```
+1. 打开 https://turso.tech → 进入数据库详情页
+2. 点 **Console** 标签，执行 `SELECT 1;` 测试连接
+3. 如果 Token 过期，去 **Tokens** 标签创建新的，然后更新 Render 环境变量
 
 ### Render 部署失败
 
@@ -288,17 +262,10 @@ turso db tokens create sjtu-course
 
 ### 数据不同步
 
-```bash
-# 检查 Turso 中的数据量
-turso db shell sjtu-course
-# > SELECT COUNT(*) FROM reviews;
-
-# 对比本地数据量
-python main.py stats
-
-# 如果不一致，重新同步
-python sync_to_turso.py
-```
+1. 打开 https://turso.tech → 进入数据库详情页 → **Console**
+2. 执行 `SELECT COUNT(*) FROM reviews;` 查看云端数据量
+3. 本地运行 `python main.py stats` 对比
+4. 如果不一致，重新运行 `python sync_to_turso.py`
 
 ---
 
@@ -321,6 +288,6 @@ python sync_to_turso.py
 
 - **Turso Token** 等同于数据库密码，不要泄露到公开仓库
 - `sync_to_turso.py` 中的 Token 通过环境变量读取，不要硬编码
-- 如果 Token 泄露，立即吊销并生成新的：`turso db tokens revoke <id>`
+- 如果 Token 泄露，立即在 Turso 网页端吊销旧 Token 并创建新的
 - Render 环境变量是加密存储的，不会暴露给前端
 - 油猴脚本只调用只读 API，不会修改数据
