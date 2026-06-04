@@ -171,19 +171,11 @@ python main.py stats
 
 ### 1. 创建 Turso 数据库（免费）
 
-```bash
-# 安装 Turso CLI
-winget install tursodatabase.turso  # Windows
-# 或 brew install tursodatabase/tap/turso  # macOS
+1. 访问 https://turso.tech → 用 GitHub 登录
+2. 点 **Create Database** → 名称填 `sjtu-course`，区域选 **香港 (HKG)**
+3. 进入数据库详情页，复制 **URL**（`libsql://...`）和创建 **Token**
 
-# 登录、建库
-turso auth login
-turso db create sjtu-course
-
-# 获取连接信息
-turso db show sjtu-course --url      # → TURSO_URL
-turso db tokens create sjtu-course    # → TURSO_TOKEN
-```
+> 详细步骤见 [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ### 2. 同步数据到 Turso
 

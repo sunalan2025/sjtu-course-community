@@ -23,14 +23,25 @@
 
 ### 1.1 创建数据库
 
+**方式一：网页端操作（推荐，全平台通用）**
+
+1. 访问 https://turso.tech → 用 GitHub 登录
+2. 点 **Create Database** → 名称填 `sjtu-course`，区域选 **香港 (HKG)**
+3. 创建完成后点击数据库名进入详情页
+4. 复制 **URL**（类似 `libsql://sjtu-course-xxx.turso.io`）
+5. 点 **Create Token** → 复制 Token（类似 `eyJ...`）
+
+**方式二：命令行操作（需要安装 CLI）**
+
 ```bash
-# 安装 Turso CLI
-# Windows:
-winget install tursodatabase.turso
-# macOS:
+# macOS
 brew install tursodatabase/tap/turso
-# Linux:
+
+# Linux
 curl -sSfL https://get.tur.so/install.sh | bash
+
+# Windows（需要 Node.js）
+npm install -g @tursodatabase/turso
 
 # 登录（会弹浏览器认证）
 turso auth login
@@ -38,6 +49,8 @@ turso auth login
 # 创建数据库（名称自定义，区域建议选香港）
 turso db create sjtu-course
 ```
+
+> ⚠️ Turso CLI **没有 Windows 原生版本**。Windows 用户请用网页端操作，或通过 npm 安装（需要先装 [Node.js](https://nodejs.org)）。
 
 ### 1.2 获取连接信息
 
