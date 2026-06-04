@@ -7,15 +7,63 @@ TURSO_URL = os.environ.get("TURSO_URL")
 TURSO_TOKEN = os.environ.get("TURSO_TOKEN")
 
 
+class _TursoConn:
+    """包装 Turso sync client，使其兼容 sqlite3.Connection 接口。"""
+
+    def __init__(self, client):
+        self._client = client
+        self.row_factory = None  # 兼容赋值，但不实际使用
+
+    def execute(self, sql, params=None):
+        result = self._client.execute(sql, params or [])
+        return _TursoCursor(result)
+
+    def executemany(self, sql, params_list):
+        stmts = [(sql, list(p)) for p in params_list]
+        if stmts:
+            self._client.batch(stmts)
+
+    def commit(self):
+        pass  # Turso HTTP 模式自动提交
+
+    def close(self):
+        self._client.close()
+
+
+class _TursoCursor:
+    """包装 Turso ResultSet，使其兼容 sqlite3 cursor 接口。"""
+
+    def __init__(self, result):
+        self._result = result
+        self._iter = iter(result)
+
+    def fetchone(self):
+        try:
+            return next(self._iter)
+        except StopIteration:
+            return None
+
+    def fetchall(self):
+        return list(self._result)
+
+    @property
+    def description(self):
+        return [(c,) for c in self._result.columns]
+
+    def __iter__(self):
+        return self._iter
+
+
 def get_conn():
     if TURSO_URL and TURSO_TOKEN:
-        from libsql_client.dbapi2 import connect
-        conn = connect(TURSO_URL, auth_token=TURSO_TOKEN)
-    else:
-        conn = sqlite3.connect(DB_PATH)
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
+        from libsql_client.sync import create_client_sync
+        client = create_client_sync(TURSO_URL, auth_token=TURSO_TOKEN)
+        return _TursoConn(client)
+
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
 

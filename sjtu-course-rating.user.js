@@ -12,8 +12,8 @@
 // @grant        GM_setValue
 // @connect      localhost
 // @connect      127.0.0.1
-// @connect      zeabur.app
-// @connect      sjtu-course.zeabur.app
+// @connect      onrender.com
+// @connect      sjtu-course-community.onrender.com
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -26,7 +26,7 @@
   // ============================================================
   // 配置
   // ============================================================
-  const API_BASE = GM_getValue('apiBase', 'https://sjtu-course.zeabur.app');
+  const API_BASE = GM_getValue('apiBase', 'https://sjtu-course-community.onrender.com');
   const CACHE_TTL = 10 * 60 * 1000;
   const HOVER_DELAY = 400;
 
@@ -36,7 +36,7 @@
   GM_registerMenuCommand('⚙️ 设置 API 地址', () => {
     const input = prompt('本地 API 地址', API_BASE);
     if (input !== null) {
-      GM_setValue('apiBase', input.trim() || 'https://sjtu-course.zeabur.app');
+      GM_setValue('apiBase', input.trim() || 'https://sjtu-course-community.onrender.com');
       location.reload();
     }
   });
